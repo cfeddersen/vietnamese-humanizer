@@ -6,7 +6,29 @@ import sys
 import tomllib
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+
+def find_repo_root() -> Path:
+    # Try traversing upwards from __file__ to find pyproject.toml
+    current = Path(__file__).resolve()
+    for parent in current.parents:
+        if (
+            (parent / "pyproject.toml").exists()
+            and (parent / "web" / "backend" / "pyproject.toml").exists()
+        ):
+            return parent
+    # If not found, try traversing upwards from current working directory
+    current = Path.cwd().resolve()
+    for parent in [current] + list(current.parents):
+        if (
+            (parent / "pyproject.toml").exists()
+            and (parent / "web" / "backend" / "pyproject.toml").exists()
+        ):
+            return parent
+    # Fallback to the original parents[3] logic
+    return Path(__file__).resolve().parents[3]
+
+
+ROOT = find_repo_root()
 PACKAGE_NAME = "vietnamese-writing-skills"
 
 
