@@ -375,10 +375,7 @@ def _is_in_quoted_text(text: str, match: re.Match[str]) -> bool:
         return True
     
     # Nếu có smart quotes, check balance
-    if smart_open_count > smart_close_count:
-        return True
-    
-    return False
+    return smart_open_count > smart_close_count
 
 
 def _acronym_issues(
