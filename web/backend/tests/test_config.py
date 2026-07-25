@@ -1,9 +1,9 @@
 import os
 from unittest.mock import patch
 
+import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
-import pytest
 
 from app.capabilities import (
     public_capabilities,
@@ -34,9 +34,8 @@ def test_capability_test_state_isolated_from_process_environment():
 
 
 def test_isolated_default_lifespan_does_not_initialize_database():
-    with patch("app.main.Base.metadata.create_all") as create_all:
-        with TestClient(app):
-            pass
+    with patch("app.main.Base.metadata.create_all") as create_all, TestClient(app):
+        pass
 
     create_all.assert_not_called()
 
@@ -156,9 +155,8 @@ def test_lifespan_initializes_database_only_for_storage_capabilities(
     monkeypatch.setattr(settings, "ADMIN_API_ENABLED", admin_enabled)
     monkeypatch.setattr(settings, "ADMIN_API_KEY", "a" * 32 if admin_enabled else None)
 
-    with patch("app.main.Base.metadata.create_all") as create_all:
-        with TestClient(app):
-            pass
+    with patch("app.main.Base.metadata.create_all") as create_all, TestClient(app):
+        pass
 
     assert create_all.call_count == expected_calls
 
@@ -169,9 +167,11 @@ def test_lifespan_validates_before_database_initialization(monkeypatch):
     monkeypatch.setattr(settings, "CONTRIBUTIONS_ENABLED", True)
     monkeypatch.setattr(settings, "ADMIN_API_ENABLED", False)
 
-    with patch("app.main.Base.metadata.create_all") as create_all:
-        with pytest.raises(ValueError, match="GEMINI_API_KEY"):
-            with TestClient(app):
-                pass
+    with (
+        patch("app.main.Base.metadata.create_all") as create_all,
+        pytest.raises(ValueError, match="GEMINI_API_KEY"),
+        TestClient(app),
+    ):
+        pass
 
     create_all.assert_not_called()

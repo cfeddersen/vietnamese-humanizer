@@ -12,7 +12,9 @@ class GeminiKeyMissingError(Exception):
     """Raised when GEMINI_API_KEY is not configured."""
 
 
-def generate_rewrite(text: str, skill: str = "humanizer-vi", issue_ids: list[str] | None = None) -> RewriteResponse:
+def generate_rewrite(
+    text: str, skill: str = "humanizer-vi", issue_ids: list[str] | None = None
+) -> RewriteResponse:
     if not settings.GEMINI_API_KEY:
         raise GeminiKeyMissingError("GEMINI_API_KEY is not configured on the backend server.")
 
@@ -46,7 +48,8 @@ def generate_rewrite(text: str, skill: str = "humanizer-vi", issue_ids: list[str
     # 4. Construct prompt and system instruction
     system_instruction = (
         "Bạn là biên tập viên tiếng Việt. Sửa văn bản theo hướng dẫn skill và danh sách issue, "
-        "nhưng BẮT BUỘC bảo toàn: dữ kiện, số liệu, tên riêng, mức độ chắc chắn, thuật ngữ chuyên môn. "
+        "nhưng BẮT BUỘC bảo toàn: dữ kiện, số liệu, tên riêng, "
+        "mức độ chắc chắn, thuật ngữ chuyên môn. "
         "Không thêm ví dụ/nguồn/metric mới. Trả lại chỉ văn bản đã sửa, không giải thích."
     )
 

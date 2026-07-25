@@ -28,7 +28,10 @@ SKILLS_DATA = [
     SkillItem(
         id="style-guide-vi",
         name="Quy chuẩn văn phong & báo chí",
-        when_to_use="Rà soát tính nhất quán về thuật ngữ, xưng hô, định dạng và hành văn chuyên nghiệp",
+        when_to_use=(
+            "Rà soát tính nhất quán về thuật ngữ, xưng hô,"
+            " định dạng và hành văn chuyên nghiệp"
+        ),
         when_not_to_use="Sáng tạo nghệ thuật tự do hoặc thay thế quy chuẩn riêng của tòa soạn",
     ),
 ]

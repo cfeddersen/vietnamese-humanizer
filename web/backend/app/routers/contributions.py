@@ -29,7 +29,10 @@ def submit_contribution(request: Request, body: ContributionCreate, db: Session 
     if body.skill not in VALID_SKILLS:
         raise HTTPException(
             status_code=400,
-            detail=f"Kỹ năng không hợp lệ: {body.skill}. Các kỹ năng hợp lệ: {', '.join(sorted(VALID_SKILLS))}",
+            detail=(
+                f"Kỹ năng không hợp lệ: {body.skill}. "
+                f"Các kỹ năng hợp lệ: {', '.join(sorted(VALID_SKILLS))}"
+            ),
         )
 
     contrib = create_contribution(db, body)

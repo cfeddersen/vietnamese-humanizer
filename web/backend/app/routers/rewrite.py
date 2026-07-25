@@ -25,13 +25,16 @@ def rewrite_endpoint(request: Request, body: RewriteRequest):
     if body.skill not in VALID_SKILLS:
         raise HTTPException(
             status_code=400,
-            detail=f"Kỹ năng không hợp lệ: {body.skill}. Các kỹ năng hợp lệ: {', '.join(sorted(VALID_SKILLS))}",
+            detail=(
+                f"Kỹ năng không hợp lệ: {body.skill}. "
+                f"Các kỹ năng hợp lệ: {', '.join(sorted(VALID_SKILLS))}"
+            ),
         )
 
     try:
         return generate_rewrite(text=body.text, skill=body.skill, issue_ids=body.issue_ids)
     except GeminiKeyMissingError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        raise HTTPException(status_code=503, detail=str(e)) from e
     except Exception:
         raise HTTPException(
             status_code=500,

@@ -190,7 +190,6 @@ patterns:
     - SVG
     - MP3
     - MP4
-    - HTTPS
     - IPv4
     - IPv6
     - WIFI

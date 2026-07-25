@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
 import uuid
+from datetime import UTC, datetime
 
 from sqlalchemy import Boolean, DateTime, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -8,7 +8,7 @@ from app.db.database import Base
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Contribution(Base):

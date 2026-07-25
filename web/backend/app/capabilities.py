@@ -32,7 +32,9 @@ def validate_capability_settings(config: Settings | None = None) -> None:
 
     if config.ADMIN_API_ENABLED:
         admin_key = (config.ADMIN_API_KEY or "").strip()
-        normalized_key = "".join(character for character in admin_key.lower() if character.isalnum())
+        normalized_key = "".join(
+            character for character in admin_key.lower() if character.isalnum()
+        )
         is_placeholder = any(
             marker in normalized_key for marker in _ADMIN_KEY_PLACEHOLDER_MARKERS
         )

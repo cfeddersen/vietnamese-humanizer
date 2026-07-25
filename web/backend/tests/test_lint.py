@@ -38,7 +38,10 @@ def test_api_surfaces_expose_core_runtime_version(client):
 
 def test_lint_text_valid(client):
     payload = {
-        "text": "Trong bối cảnh không ngừng phát triển, doanh nghiệp cần đổi mới. Trong bối cảnh không ngừng phát triển, thị trường yêu cầu linh hoạt.",
+        "text": (
+            "Trong bối cảnh không ngừng phát triển, doanh nghiệp cần đổi mới. "
+            "Trong bối cảnh không ngừng phát triển, thị trường yêu cầu linh hoạt."
+        ),
         "skills": ["humanizer-vi"],
     }
     response = client.post("/api/lint", json=payload)

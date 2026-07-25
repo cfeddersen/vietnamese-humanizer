@@ -18,7 +18,10 @@ def lint_text_endpoint(request: Request, body: LintRequest):
         if invalid:
             raise HTTPException(
                 status_code=400,
-                detail=f"Kỹ năng không hợp lệ: {', '.join(invalid)}. Các kỹ năng hợp lệ: {', '.join(sorted(VALID_SKILLS))}",
+                detail=(
+                    f"Kỹ năng không hợp lệ: {', '.join(invalid)}. "
+                    f"Các kỹ năng hợp lệ: {', '.join(sorted(VALID_SKILLS))}"
+                ),
             )
 
     return run_linter(text=body.text, skills=body.skills)

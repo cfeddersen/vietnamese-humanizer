@@ -25,7 +25,12 @@ def create_contribution(db: Session, data: ContributionCreate) -> Contribution:
 
 
 def get_contributions_by_status(db: Session, status: str = "pending") -> list[Contribution]:
-    return db.query(Contribution).filter(Contribution.status == status).order_by(Contribution.created_at.desc()).all()
+    return (
+        db.query(Contribution)
+        .filter(Contribution.status == status)
+        .order_by(Contribution.created_at.desc())
+        .all()
+    )
 
 
 def update_contribution_status(
