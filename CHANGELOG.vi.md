@@ -6,6 +6,17 @@ Tuân theo cấu trúc Keep a Changelog. Chưa cam kết Semantic Versioning tr�
 
 ## [Unreleased]
 
+## [0.4.5] - 2026-07-25
+
+### Fixed
+
+- Giảm false positive trong phát hiện viết tắt VI-STY-T02 bằng cách loại trừ từ tiếng Việt nhấn mạnh (NGAY, MUA, GIẢM...), viết tắt hành chính VN phổ biến (UBND, CSGT, BHXH, CMND, CCCD...), thuật ngữ tech bổ sung (APP, APK, WIFI...) và văn bản trong ngoặc kép.
+- Bổ sung heuristic nhận biết ngữ cảnh để bỏ qua từ tiếng Việt viết hoa có dấu và cụm viết hoa trong ngữ cảnh CTA/quảng cáo.
+
+### Changed
+
+- Mở rộng exclude_phrases của VI-STY-T02 từ ~20 lên ~130+ entries bao gồm từ vựng tech, business, hành chính và nhấn mạnh.
+
 ## [0.4.4] - 2026-07-22
 
 ### Added

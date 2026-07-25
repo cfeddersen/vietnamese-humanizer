@@ -270,6 +270,39 @@ def test_common_acronym_is_not_reported() -> None:
     assert "VI-STY-T02" not in ids("API trả JSON.", "style-guide-vi")
 
 
+def test_uppercase_vietnamese_emphasis_is_not_reported_as_acronym() -> None:
+    """Từ tiếng Việt viết hoa nhấn mạnh (CTA, quảng cáo) không phải viết tắt."""
+    # Từ có dấu tiếng Việt
+    assert "VI-STY-T02" not in ids("Ưu đãi GIẢM GIÁ SỐC!", "style-guide-vi")
+    # Từ không dấu nhưng nằm trong exclude_phrases
+    assert "VI-STY-T02" not in ids("Nhận ưu đãi lên đến 40% NGAY TẠI ĐÂY!", "style-guide-vi")
+    # Cụm viết hoa nhấn mạnh cùng dòng có từ có dấu
+    assert "VI-STY-T02" not in ids("MUA NGAY SIÊU KHỦNG!", "style-guide-vi")
+    # Viết tắt thật vẫn bị detect
+    assert "VI-STY-T02" in ids("SLA sẽ được rà soát.", "style-guide-vi")
+
+
+def test_vietnamese_administrative_acronyms_are_excluded() -> None:
+    """Viết tắt hành chính VN phổ biến không trigger vì quá quen thuộc."""
+    assert "VI-STY-T02" not in ids("UBND tỉnh đã phê duyệt.", "style-guide-vi")
+    assert "VI-STY-T02" not in ids("CSGT xử lý vi phạm.", "style-guide-vi")
+    assert "VI-STY-T02" not in ids("BHXH là bắt buộc.", "style-guide-vi")
+    assert "VI-STY-T02" not in ids("CMND hoặc CCCD đều được.", "style-guide-vi")
+
+
+def test_quoted_acronyms_are_not_reported() -> None:
+    """Từ viết hoa trong ngoặc kép (slogan, quote) không trigger."""
+    assert "VI-STY-T02" not in ids('"JUST DO IT" là slogan Nike.', "style-guide-vi")
+    assert "VI-STY-T02" not in ids('"HELLO WORLD" trong code.', "style-guide-vi")
+    assert "VI-STY-T02" not in ids('Slogan "KEEP CALM" đã nổi tiếng.', "style-guide-vi")
+
+
+def test_common_tech_acronyms_are_excluded() -> None:
+    """Viết tắt tech phổ biến đã có trong exclude_phrases."""
+    assert "VI-STY-T02" not in ids("Dùng APP để đặt hàng.", "style-guide-vi")
+    assert "VI-STY-T02" not in ids("Tải APK từ trang chính thức.", "style-guide-vi")
+
+
 def test_issue_json_has_taxonomy_fields(tmp_path: Path) -> None:
     path = tmp_path / "sample.md"
     path.write_text("Nhóm sẽ sẽ gửi báo cáo.", encoding="utf-8")

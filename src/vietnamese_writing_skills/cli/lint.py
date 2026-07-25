@@ -19,6 +19,10 @@ URL_RE = re.compile(r"(?:https?://|www\.)\S+", flags=re.IGNORECASE)
 IDENTIFIER_RE = re.compile(r"\b(?:[A-Za-z_][A-Za-z0-9_]*_[A-Za-z0-9_]+|[A-Za-z]+::[A-Za-z:]+)\b")
 SENTENCE_RE = re.compile(r"[^.!?\n]+[.!?]?", flags=re.UNICODE)
 WORD_RE = re.compile(r"[\wÀ-ỹĐđ]+", flags=re.UNICODE)
+# Ký tự nguyên âm tiếng Việt có dấu (uppercase) — viết tắt thật không chứa các ký tự này
+_VIETNAMESE_VOWEL_MARKS_RE = re.compile(
+    r"[ÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴ]"
+)
 PRONOUN_GROUPS = (
     ("bạn", "quý khách", "người dùng", "khách hàng"),
     ("tôi", "chúng tôi", "chúng ta"),
@@ -331,6 +335,52 @@ def _percentage_consistency_issues(
     ]
 
 
+def _is_emphasis_context(masked: str, match: re.Match[str]) -> bool:
+    """Kiểm tra xem từ viết hoa có nằm trong ngữ cảnh nhấn mạnh (CTA, banner, quảng cáo) không.
+
+    Heuristic: nếu gần đó (cùng dòng/cùng câu) có từ viết hoa khác chứa dấu tiếng Việt,
+    hoặc có nhiều từ viết hoa liên tiếp, thì đây là cụm nhấn mạnh.
+    """
+    # Lấy ranh giới dòng/câu chứa match
+    line_start = masked.rfind("\n", 0, match.start()) + 1
+    line_end = masked.find("\n", match.end())
+    if line_end < 0:
+        line_end = len(masked)
+    line = masked[line_start:line_end]
+
+    # Tìm tất cả từ viết hoa 2+ ký tự trên cùng dòng
+    upper_words = re.findall(r"[A-ZĐÀ-Ỹ]{2,}", line)
+    if len(upper_words) < 2:
+        return False
+
+    # Nếu bất kỳ từ viết hoa nào trên cùng dòng chứa dấu tiếng Việt → cụm nhấn mạnh
+    for word in upper_words:
+        if word != match.group(0) and _VIETNAMESE_VOWEL_MARKS_RE.search(word):
+            return True
+
+    return False
+
+
+def _is_in_quoted_text(text: str, match: re.Match[str]) -> bool:
+    """Kiểm tra xem match có nằm trong ngoặc kép/quote không."""
+    # Đếm số ngoặc kép trước match
+    before = text[:match.start()]
+    # Hỗ trợ cả " (ASCII) và " " (smart quotes)
+    ascii_quote_count = before.count('"')
+    smart_open_count = before.count('"')
+    smart_close_count = before.count('"')
+    
+    # Nếu có ASCII quotes, check parity
+    if ascii_quote_count > 0 and ascii_quote_count % 2 == 1:
+        return True
+    
+    # Nếu có smart quotes, check balance
+    if smart_open_count > smart_close_count:
+        return True
+    
+    return False
+
+
 def _acronym_issues(
     text: str,
     masked: str,
@@ -339,6 +389,16 @@ def _acronym_issues(
     pattern = patterns["VI-STY-T02"]
     issues: list[dict[str, Any]] = []
     for match in _signal_matches(masked, pattern):
+        word = match.group(0)
+        # Từ chứa nguyên âm có dấu tiếng Việt → viết hoa nhấn mạnh, không phải viết tắt
+        if _VIETNAMESE_VOWEL_MARKS_RE.search(word):
+            continue
+        # Từ viết hoa nằm trong ngữ cảnh cụm nhấn mạnh (cùng dòng có từ viết hoa tiếng Việt khác)
+        if _is_emphasis_context(masked, match):
+            continue
+        # Từ nằm trong ngoặc kép (quote, slogan) → skip
+        if _is_in_quoted_text(text, match):
+            continue
         is_parenthesized = (
             match.start() > 0
             and match.end() < len(masked)

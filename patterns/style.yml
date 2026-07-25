@@ -121,6 +121,7 @@ patterns:
     regex:
     - (?<![A-Z0-9])[A-ZĐ]{3,6}(?![A-Z0-9])
     exclude_phrases:
+    # Tech / IT phổ biến
     - API
     - URL
     - HTTP
@@ -141,6 +142,140 @@ patterns:
     - ICT
     - GB
     - MB
+    - SSD
+    - HDD
+    - USB
+    - GPS
+    - VPN
+    - DNS
+    - FTP
+    - SSH
+    - IDE
+    - ORM
+    - CMS
+    - CDN
+    - AWS
+    - GCP
+    - SEO
+    - SEM
+    - CRM
+    - ERP
+    - SaaS
+    - IaaS
+    - PaaS
+    - XML
+    - YAML
+    - TOML
+    - REST
+    - SOAP
+    - CRUD
+    - ACID
+    - CORS
+    - CSRF
+    - DDOS
+    - SMTP
+    - IMAP
+    - POP
+    - TCP
+    - UDP
+    - IoT
+    - NFC
+    - RFID
+    - LTE
+    - APP
+    - APK
+    - JPEG
+    - PNG
+    - GIF
+    - SVG
+    - MP3
+    - MP4
+    - HTTPS
+    - IPv4
+    - IPv6
+    - WIFI
+    - QR
+    # Tổ chức / Kinh doanh
+    - CEO
+    - CTO
+    - CFO
+    - COO
+    - CMO
+    - KPI
+    - OKR
+    - ROI
+    - B2B
+    - B2C
+    - MVP
+    - IPO
+    - PR
+    # Tiêu chuẩn / Chứng nhận
+    - ISO
+    - GDPR
+    - HIPAA
+    - PCI
+    - SOC
+    - OWASP
+    # Giáo dục / Xã hội
+    - IELTS
+    - TOEFL
+    - TOEIC
+    - GPA
+    - PhD
+    - MBA
+    - WHO
+    - UNESCO
+    - UNICEF
+    - NATO
+    - ASEAN
+    - WTO
+    - IMF
+    # Hành chính / Pháp lý Việt Nam (phổ biến)
+    - UBND
+    - UBMT
+    - HĐND
+    - CSGT
+    - BHXH
+    - BHYT
+    - BHTN
+    - CMND
+    - CCCD
+    - GPLX
+    - ĐKKD
+    - GPKD
+    - QĐND
+    - QLNN
+    - TTHC
+    # Từ tiếng Việt phổ biến thường viết hoa nhấn mạnh (CTA, quảng cáo, banner)
+    - NGAY
+    - MUA
+    - XEM
+    - TẢI
+    - GỌI
+    - GỬI
+    - ĐÂY
+    - NÀY
+    - HOT
+    - MỚI
+    - FREE
+    - SALE
+    - MIỄN
+    - GIẢM
+    - TẶNG
+    - ĐẶT
+    - NÉN
+    - LỚN
+    - KHỦNG
+    - SỐC
+    - SIÊU
+    - NHANH
+    - LIỀN
+    - CLICK
+    - BẤM
+    - ĐĂNG
+    - NHẬP
+    - THỬ
+    - DÙNG
   why_it_matters: Độc giả mới có thể không biết viết tắt, nhưng nhiều từ đã quá quen trong từng domain.
   rewrite_strategy:
   - Giải thích ở lần đầu theo glossary; bỏ qua tên sản phẩm, đơn vị và từ viết tắt phổ biến với độc giả.

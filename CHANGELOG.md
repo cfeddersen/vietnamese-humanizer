@@ -6,6 +6,17 @@ Follows Keep a Changelog structure. Semantic Versioning is not yet guaranteed be
 
 ## [Unreleased]
 
+## [0.4.5] - 2026-07-25
+
+### Fixed
+
+- Reduced false positives in VI-STY-T02 acronym detection by excluding Vietnamese emphasis words (NGAY, MUA, GIẢM...), common Vietnamese administrative abbreviations (UBND, CSGT, BHXH, CMND, CCCD...), additional tech terms (APP, APK, WIFI...), and text within quotation marks.
+- Added context-aware heuristics to skip uppercase Vietnamese words with diacritics and uppercase clusters in CTA/advertising contexts.
+
+### Changed
+
+- Expanded VI-STY-T02 exclude_phrases from ~20 to ~130+ entries covering tech, business, administrative, and emphasis vocabulary.
+
 ## [0.4.4] - 2026-07-22
 
 ### Added
