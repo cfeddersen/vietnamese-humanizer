@@ -28,6 +28,49 @@ def test_inline_code_and_url_keep_length() -> None:
     assert "https://" not in masked
 
 
+def test_inline_code_span_with_multiple_backticks_is_ignored() -> None:
+    assert "VI-GRA-P02" not in ids("``một,hai ` mẫu``", "grammar-checker-vi")
+
+
+def test_markdown_constructs_are_ignored_without_masking_link_text(tmp_path: Path) -> None:
+    fixture = ROOT / "tests" / "fixtures" / "markdown_protected.md"
+    text = fixture.read_text(encoding="utf-8")
+    masked = mask_protected(text, markdown=True)
+    assert (len(masked), masked.count("\n")) == (len(text), text.count("\n"))
+
+    issues = lint_file(fixture, {"grammar-checker-vi"})["issues"]
+    assert not {"VI-GRA-P01", "VI-GRA-P02"} & {
+        issue["pattern_id"] for issue in issues
+    }
+
+    plain_text = tmp_path / "notes.txt"
+    plain_text.write_text("[x](./a.vi.md)\n", encoding="utf-8")
+    assert "VI-GRA-P02" in {
+        issue["pattern_id"]
+        for issue in lint_file(plain_text, {"grammar-checker-vi"})["issues"]
+    }
+
+
+def test_markdown_link_text_is_linted_at_its_original_location(tmp_path: Path) -> None:
+    text = (
+        "---\n"
+        "title:notes\n"
+        "---\n"
+        "[x](./a.vi.md)\n"
+        "Trước `một,hai` [Bản A đã duyệt,bản B](./b.vi.md).\n"
+    )
+    path = tmp_path / "links.md"
+    path.write_text(text, encoding="utf-8")
+
+    issue = next(
+        item
+        for item in lint_file(path, {"grammar-checker-vi"})["issues"]
+        if item["pattern_id"] == "VI-GRA-P02"
+    )
+    line = text.splitlines()[4]
+    assert (issue["line"], issue["column"]) == (5, line.index(",bản") + 1)
+
+
 def test_line_and_column_are_correct() -> None:
     text = "Dòng một.\nDòng hai.\n  Nhóm thực hiện việc kiểm tra.\n"
     issues = lint_text(text, {"translationese-cleaner-vi"})

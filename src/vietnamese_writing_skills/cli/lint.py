@@ -14,9 +14,18 @@ from vietnamese_writing_skills.core.paths import data_location, repository_root
 from vietnamese_writing_skills.core.patterns import iter_patterns, pattern_index
 
 FENCE_RE = re.compile(r"^\s*(```|~~~)")
-INLINE_CODE_RE = re.compile(r"`[^`\n]+`")
+INLINE_CODE_RE = re.compile(
+    r"(?<!`)(?P<delimiter>`+)(?!`)(?s:.*?)(?<!`)(?P=delimiter)(?!`)"
+)
 URL_RE = re.compile(r"(?:https?://|www\.)\S+", flags=re.IGNORECASE)
 IDENTIFIER_RE = re.compile(r"\b(?:[A-Za-z_][A-Za-z0-9_]*_[A-Za-z0-9_]+|[A-Za-z]+::[A-Za-z:]+)\b")
+HTML_COMMENT_RE = re.compile(r"<!--.*?-->", flags=re.DOTALL)
+REFERENCE_DEFINITION_RE = re.compile(r"(?m)^[ \t]{0,3}\[[^\]\n]+\]:[^\n]*$")
+BARE_URL_RE = re.compile(
+    r"\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}(?:[/?#][^\s<>()]*)?",
+    flags=re.IGNORECASE,
+)
+MARKDOWN_SUFFIXES = {".md", ".markdown", ".mdown", ".mkdn"}
 SENTENCE_RE = re.compile(r"[^.!?\n]+[.!?]?", flags=re.UNICODE)
 WORD_RE = re.compile(r"[\wÀ-ỹĐđ]+", flags=re.UNICODE)
 # Ký tự nguyên âm tiếng Việt có dấu (uppercase) — viết tắt thật không chứa các ký tự này
@@ -40,7 +49,66 @@ SPECIAL_PATTERN_IDS = {
 }
 
 
-def mask_protected(text: str) -> str:
+def _mask_span(characters: list[str], start: int, end: int) -> None:
+    for index in range(start, end):
+        if characters[index] != "\n":
+            characters[index] = " "
+
+
+def _mask_matches(characters: list[str], expression: re.Pattern[str]) -> None:
+    for match in expression.finditer("".join(characters)):
+        _mask_span(characters, match.start(), match.end())
+
+
+def _inline_link_target_end(text: str, opening: int) -> int | None:
+    """Return the index after an inline link target's closing parenthesis."""
+    depth = 1
+    index = opening + 1
+    while index < len(text):
+        char = text[index]
+        if char == "\\":
+            index += 2
+            continue
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+            if depth == 0:
+                return index + 1
+        index += 1
+    return None
+
+
+def _mask_inline_link_targets(characters: list[str]) -> None:
+    text = "".join(characters)
+    for match in re.finditer(r"\]\(", text):
+        closing = _inline_link_target_end(text, match.end() - 1)
+        if closing is not None:
+            _mask_span(characters, match.end() - 1, closing)
+
+
+def _mask_front_matter(characters: list[str]) -> None:
+    text = "".join(characters)
+    lines = text.splitlines(keepends=True)
+    if not lines or lines[0].strip() != "---":
+        return
+    offset = len(lines[0])
+    for line in lines[1:]:
+        offset += len(line)
+        if line.strip() in {"---", "..."}:
+            _mask_span(characters, 0, offset)
+            return
+
+
+def _mask_markdown_constructs(characters: list[str]) -> None:
+    _mask_front_matter(characters)
+    _mask_matches(characters, HTML_COMMENT_RE)
+    _mask_matches(characters, REFERENCE_DEFINITION_RE)
+    _mask_inline_link_targets(characters)
+    _mask_matches(characters, BARE_URL_RE)
+
+
+def mask_protected(text: str, markdown: bool = False) -> str:
     """Che nội dung không nên lint nhưng giữ nguyên newline và vị trí ký tự."""
     output: list[str] = []
     in_fence = False
@@ -60,11 +128,14 @@ def mask_protected(text: str) -> str:
         if in_fence:
             output.append("".join("\n" if char == "\n" else " " for char in line))
             continue
-        masked = line
-        for expression in (INLINE_CODE_RE, URL_RE, IDENTIFIER_RE):
-            masked = expression.sub(lambda match: " " * len(match.group(0)), masked)
-        output.append(masked)
-    return "".join(output)
+        output.append(line)
+
+    characters = list("".join(output))
+    for expression in (INLINE_CODE_RE, URL_RE, IDENTIFIER_RE):
+        _mask_matches(characters, expression)
+    if markdown:
+        _mask_markdown_constructs(characters)
+    return "".join(characters)
 
 
 def _location(text: str, start: int) -> tuple[int, int]:
@@ -451,10 +522,11 @@ def lint_text(
     text: str,
     skills: set[str] | None = None,
     pattern_dir: Any | None = None,
+    markdown: bool = False,
 ) -> list[dict[str, Any]]:
     directory = pattern_dir or data_location("patterns")
     patterns = pattern_index(directory)
-    masked = mask_protected(text)
+    masked = mask_protected(text, markdown=markdown)
     issues = _catalog_issues(text, masked, directory, skills)
     if not skills or "humanizer-vi" in skills:
         issues.extend(_repeated_opening_issues(text, masked, patterns))
@@ -481,7 +553,12 @@ def lint_file(
     skills: set[str] | None = None,
     pattern_dir: Any | None = None,
 ) -> dict[str, Any]:
-    issues = lint_text(path.read_text(encoding="utf-8"), skills, pattern_dir)
+    issues = lint_text(
+        path.read_text(encoding="utf-8"),
+        skills,
+        pattern_dir,
+        markdown=path.suffix.lower() in MARKDOWN_SUFFIXES,
+    )
     counts = Counter(issue["finding_type"] for issue in issues)
     return {
         "file": str(path),
