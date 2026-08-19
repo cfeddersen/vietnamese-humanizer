@@ -26,6 +26,7 @@ BARE_URL_RE = re.compile(
     flags=re.IGNORECASE,
 )
 MARKDOWN_SUFFIXES = {".md", ".markdown", ".mdown", ".mkdn"}
+MASK_CHARACTER = "\uE000"
 SENTENCE_RE = re.compile(r"[^.!?\n]+[.!?]?", flags=re.UNICODE)
 WORD_RE = re.compile(r"[\wÀ-ỹĐđ]+", flags=re.UNICODE)
 # Ký tự nguyên âm tiếng Việt có dấu (uppercase) — viết tắt thật không chứa các ký tự này
@@ -52,7 +53,7 @@ SPECIAL_PATTERN_IDS = {
 def _mask_span(characters: list[str], start: int, end: int) -> None:
     for index in range(start, end):
         if characters[index] != "\n":
-            characters[index] = " "
+            characters[index] = MASK_CHARACTER
 
 
 def _mask_matches(characters: list[str], expression: re.Pattern[str]) -> None:
@@ -117,7 +118,9 @@ def mask_protected(text: str, markdown: bool = False) -> str:
         fence = FENCE_RE.match(line)
         if fence and (not in_fence or line.lstrip().startswith(fence_marker)):
             marker = fence.group(1)
-            output.append("".join("\n" if char == "\n" else " " for char in line))
+            output.append(
+                "".join("\n" if char == "\n" else MASK_CHARACTER for char in line)
+            )
             if in_fence:
                 in_fence = False
                 fence_marker = ""
@@ -126,7 +129,9 @@ def mask_protected(text: str, markdown: bool = False) -> str:
                 fence_marker = marker
             continue
         if in_fence:
-            output.append("".join("\n" if char == "\n" else " " for char in line))
+            output.append(
+                "".join("\n" if char == "\n" else MASK_CHARACTER for char in line)
+            )
             continue
         output.append(line)
 

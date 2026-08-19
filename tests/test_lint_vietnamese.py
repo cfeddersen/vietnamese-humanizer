@@ -71,6 +71,19 @@ def test_markdown_link_text_is_linted_at_its_original_location(tmp_path: Path) -
     assert (issue["line"], issue["column"]) == (5, line.index(",bản") + 1)
 
 
+def test_markdown_link_targets_do_not_create_space_before_punctuation(tmp_path: Path) -> None:
+    path = tmp_path / "probe.md"
+    path.write_text(
+        "Xem [trang kia](./a-b.vi.md).\n\nXem [trang kia](#muc-luc).\n",
+        encoding="utf-8",
+    )
+
+    assert "VI-GRA-P01" not in {
+        issue["pattern_id"]
+        for issue in lint_file(path, {"grammar-checker-vi"})["issues"]
+    }
+
+
 def test_line_and_column_are_correct() -> None:
     text = "Dòng một.\nDòng hai.\n  Nhóm thực hiện việc kiểm tra.\n"
     issues = lint_text(text, {"translationese-cleaner-vi"})
